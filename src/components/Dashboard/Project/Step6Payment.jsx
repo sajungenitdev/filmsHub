@@ -1,3 +1,4 @@
+// steps/Step6Payment.jsx
 "use client";
 
 import { useState } from "react";
@@ -9,8 +10,8 @@ import {
     useElements,
 } from "@stripe/react-stripe-js";
 
-// Replace with your Stripe public key
-const stripePromise = loadStripe("your_stripe_public_key");
+// Use environment variable for Stripe public key
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
 const PaymentForm = ({ formData, onSubmit, onPrev, isSubmitting }) => {
     const stripe = useStripe();
@@ -41,11 +42,16 @@ const PaymentForm = ({ formData, onSubmit, onPrev, isSubmitting }) => {
                     metadata: {
                         projectTitle: formData.projectTitle,
                         projectType: formData.projectType,
+                        email: formData.email,
                     }
                 }),
             });
             
-            const { clientSecret } = await response.json();
+            const { clientSecret, error: apiError } = await response.json();
+            
+            if (apiError) {
+                throw new Error(apiError);
+            }
             
             // Confirm the payment
             const { error: paymentError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
@@ -66,7 +72,8 @@ const PaymentForm = ({ formData, onSubmit, onPrev, isSubmitting }) => {
                 await onSubmit(paymentIntent.id);
             }
         } catch (err) {
-            setError("An error occurred while processing your payment.");
+            console.error("Payment error:", err);
+            setError(err.message || "An error occurred while processing your payment.");
             setProcessing(false);
         }
     };
@@ -86,7 +93,7 @@ const PaymentForm = ({ formData, onSubmit, onPrev, isSubmitting }) => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                         Card Details
                     </label>
-                    <div className="border text-black border-gray-300 rounded-lg p-3 bg-white">
+                    <div className="border border-gray-300 rounded-lg p-3 bg-white">
                         <CardElement
                             options={{
                                 style: {
@@ -96,6 +103,7 @@ const PaymentForm = ({ formData, onSubmit, onPrev, isSubmitting }) => {
                                         "::placeholder": {
                                             color: "#aab7c4",
                                         },
+                                        padding: "10px 12px",
                                     },
                                     invalid: {
                                         color: "#9e2146",
@@ -124,7 +132,7 @@ const PaymentForm = ({ formData, onSubmit, onPrev, isSubmitting }) => {
                 <button
                     type="button"
                     onClick={onPrev}
-                    className="px-6 py-2.5 border text-black border-gray-300 rounded-md font-semibold text-gray-700 hover:bg-gray-50 transition-all"
+                    className="px-6 py-2.5 border border-gray-300 rounded-md font-semibold text-gray-700 hover:bg-gray-50 transition-all"
                     disabled={isSubmitting || processing}
                 >
                     ← Previous
@@ -152,6 +160,23 @@ const PaymentForm = ({ formData, onSubmit, onPrev, isSubmitting }) => {
 };
 
 export default function Step6Payment({ formData, updateFormData, onSubmit, onPrev, isSubmitting }) {
+    // Make sure Stripe is initialized
+    if (!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY) {
+        return (
+            <div className="text-center py-8">
+                <div className="text-red-500 mb-4">
+                    Stripe is not configured. Please add your Stripe public key to environment variables.
+                </div>
+                <button
+                    onClick={onPrev}
+                    className="px-6 py-2.5 border border-gray-300 rounded-md font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                    ← Previous
+                </button>
+            </div>
+        );
+    }
+    
     return (
         <Elements stripe={stripePromise}>
             <PaymentForm
