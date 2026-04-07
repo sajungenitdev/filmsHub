@@ -26,9 +26,9 @@ const Login = () => {
                 const userData = JSON.parse(user);
                 // Redirect based on role
                 if (userData.role === 'admin' || userData.role === 'Administrator') {
-                    router.push('/admin');
+                    window.location.href = '/admin';
                 } else {
-                    router.push('/dashboard');
+                    window.location.href = '/dashboard';
                 }
             } catch (error) {
                 console.error('Error parsing user data:', error);
@@ -37,7 +37,7 @@ const Login = () => {
                 localStorage.removeItem('user');
             }
         }
-    }, [router]);
+    }, []);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -51,6 +51,9 @@ const Login = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        
+        // Prevent double submission
+        if (isLoading) return;
         
         // Basic validation
         if (!formData.email.trim()) {
@@ -94,22 +97,24 @@ const Login = () => {
                 
                 console.log('Login successful! User role:', data.user.role);
                 
-                // Small delay to ensure storage is set
+                // Use window.location.href for reliable redirect
+                const redirectUrl = (data.user.role === 'admin' || data.user.role === 'Administrator') 
+                    ? '/admin' 
+                    : '/dashboard';
+                
+                console.log('Redirecting to:', redirectUrl);
+                
+                // Small delay to ensure storage is set, then redirect
                 setTimeout(() => {
-                    // Redirect based on user role
-                    if (data.user.role === 'admin' || data.user.role === 'Administrator') {
-                        router.push('/admin');
-                    } else {
-                        router.push('/dashboard');
-                    }
+                    window.location.href = redirectUrl;
                 }, 100);
             } else {
                 setError(data.message || 'Login failed. Please check your credentials.');
+                setIsLoading(false);
             }
         } catch (error) {
             console.error('Login error:', error);
             setError('Unable to connect to server. Please check your internet connection.');
-        } finally {
             setIsLoading(false);
         }
     };
@@ -129,7 +134,7 @@ const Login = () => {
 
                         {/* Error Message */}
                         {error && (
-                            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-3 animate-shake">
+                            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-3">
                                 <div className="flex items-center gap-2">
                                     <svg className="w-5 h-5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -217,7 +222,6 @@ const Login = () => {
                                         Remember me
                                     </label>
                                 </div>
-                                {/* Forgot password link removed to avoid 404 */}
                             </div>
 
                             {/* Submit Button */}
