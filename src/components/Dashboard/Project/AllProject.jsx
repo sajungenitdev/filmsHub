@@ -18,7 +18,7 @@ const AllProject = () => {
     const [projectToDelete, setProjectToDelete] = useState(null);
     const [viewModalOpen, setViewModalOpen] = useState(false);
     const [selectedProject, setSelectedProject] = useState(null);
-    
+
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://film-server-qlxt.onrender.com';
 
     useEffect(() => {
@@ -29,17 +29,20 @@ const AllProject = () => {
         filterProjects();
     }, [searchTerm, projects]);
 
+    // In your AllProject component
+    // In AllProject component
     const fetchProjects = async () => {
         try {
             setLoading(true);
             const token = getToken();
-            
+
             if (!token) {
                 router.push('/login');
                 return;
             }
 
-            const response = await fetch(`${API_URL}/api/projects/my-projects`, {
+            // Use the new endpoint
+            const response = await fetch(`${API_URL}/api/projects/user/list`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -66,7 +69,7 @@ const AllProject = () => {
         if (!searchTerm) {
             setFilteredProjects(projects);
         } else {
-            const filtered = projects.filter(project => 
+            const filtered = projects.filter(project =>
                 project.projectTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 project.projectType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 project.email?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -95,14 +98,14 @@ const AllProject = () => {
         const hours = parseInt(project.runtimeHours) || 0;
         const minutes = parseInt(project.runtimeMinutes) || 0;
         const seconds = parseInt(project.runtimeSeconds) || 0;
-        
+
         if (hours === 0 && minutes === 0 && seconds === 0) return 'Not specified';
-        
+
         const parts = [];
         if (hours > 0) parts.push(`${hours}h`);
         if (minutes > 0) parts.push(`${minutes}m`);
         if (seconds > 0) parts.push(`${seconds}s`);
-        
+
         return parts.join(' ');
     };
 
@@ -160,7 +163,7 @@ const AllProject = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                         <p className="text-red-600 text-sm">{error}</p>
-                        <button 
+                        <button
                             onClick={() => setError('')}
                             className="ml-auto text-red-600 hover:text-red-800"
                         >
@@ -178,8 +181,8 @@ const AllProject = () => {
                         Total Projects: {projects.length} | Manage your film submissions
                     </p>
                 </div>
-                <Link 
-                    href="/projects/drop-project" 
+                <Link
+                    href="/projects/drop-project"
                     className="bg-[#1EB97A] hover:bg-[#189663] text-white px-6 py-2.5 rounded-md font-semibold flex items-center gap-2 transition-all shadow-sm w-fit"
                 >
                     <span className="text-xl">+</span> Add New Project
@@ -269,13 +272,12 @@ const AllProject = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                                project.submissionStatus === 'submitted' 
-                                                    ? 'bg-yellow-100 text-yellow-800'
-                                                    : project.submissionStatus === 'approved'
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${project.submissionStatus === 'submitted'
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : project.submissionStatus === 'approved'
                                                     ? 'bg-green-100 text-green-800'
                                                     : 'bg-gray-100 text-gray-800'
-                                            }`}>
+                                                }`}>
                                                 {project.submissionStatus || 'Draft'}
                                             </span>
                                         </td>
@@ -321,11 +323,10 @@ const AllProject = () => {
                                 <button
                                     key={index}
                                     onClick={() => setCurrentPage(index + 1)}
-                                    className={`px-3 py-1 rounded text-sm font-medium transition ${
-                                        currentPage === index + 1
-                                            ? 'bg-[#1EB97A] text-white'
-                                            : 'border border-gray-300 text-gray-600 hover:bg-gray-50'
-                                    }`}
+                                    className={`px-3 py-1 rounded text-sm font-medium transition ${currentPage === index + 1
+                                        ? 'bg-[#1EB97A] text-white'
+                                        : 'border border-gray-300 text-gray-600 hover:bg-gray-50'
+                                        }`}
                                 >
                                     {index + 1}
                                 </button>
@@ -412,36 +413,36 @@ const AllProject = () => {
                             </div>
 
                             {/* Credits */}
-                            {(selectedProject.directors?.length > 0 || selectedProject.writers?.length > 0 || 
-                              selectedProject.producers?.length > 0 || selectedProject.keyCast?.length > 0) && (
-                                <div className="bg-gray-50 rounded-lg p-4">
-                                    <h4 className="font-semibold text-gray-900 mb-3">Credits</h4>
-                                    {selectedProject.directors?.length > 0 && (
-                                        <div className="mb-3">
-                                            <label className="text-xs text-gray-500">Directors</label>
-                                            <p className="text-gray-900 text-sm">
-                                                {selectedProject.directors.map(d => `${d.firstName} ${d.lastName}`).join(', ')}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {selectedProject.writers?.length > 0 && (
-                                        <div className="mb-3">
-                                            <label className="text-xs text-gray-500">Writers</label>
-                                            <p className="text-gray-900 text-sm">
-                                                {selectedProject.writers.map(w => `${w.firstName} ${w.lastName}`).join(', ')}
-                                            </p>
-                                        </div>
-                                    )}
-                                    {selectedProject.producers?.length > 0 && (
-                                        <div className="mb-3">
-                                            <label className="text-xs text-gray-500">Producers</label>
-                                            <p className="text-gray-900 text-sm">
-                                                {selectedProject.producers.map(p => `${p.firstName} ${p.lastName}`).join(', ')}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                            {(selectedProject.directors?.length > 0 || selectedProject.writers?.length > 0 ||
+                                selectedProject.producers?.length > 0 || selectedProject.keyCast?.length > 0) && (
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <h4 className="font-semibold text-gray-900 mb-3">Credits</h4>
+                                        {selectedProject.directors?.length > 0 && (
+                                            <div className="mb-3">
+                                                <label className="text-xs text-gray-500">Directors</label>
+                                                <p className="text-gray-900 text-sm">
+                                                    {selectedProject.directors.map(d => `${d.firstName} ${d.lastName}`).join(', ')}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {selectedProject.writers?.length > 0 && (
+                                            <div className="mb-3">
+                                                <label className="text-xs text-gray-500">Writers</label>
+                                                <p className="text-gray-900 text-sm">
+                                                    {selectedProject.writers.map(w => `${w.firstName} ${w.lastName}`).join(', ')}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {selectedProject.producers?.length > 0 && (
+                                            <div className="mb-3">
+                                                <label className="text-xs text-gray-500">Producers</label>
+                                                <p className="text-gray-900 text-sm">
+                                                    {selectedProject.producers.map(p => `${p.firstName} ${p.lastName}`).join(', ')}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                             {/* Technical Specifications */}
                             <div className="bg-gray-50 rounded-lg p-4">
@@ -472,26 +473,26 @@ const AllProject = () => {
                                     <h4 className="font-semibold text-gray-900 mb-3">Social Links</h4>
                                     <div className="flex flex-wrap gap-3">
                                         {selectedProject.website && (
-                                            <a href={selectedProject.website} target="_blank" rel="noopener noreferrer" 
-                                               className="text-blue-600 hover:text-blue-700 text-sm">
+                                            <a href={selectedProject.website} target="_blank" rel="noopener noreferrer"
+                                                className="text-blue-600 hover:text-blue-700 text-sm">
                                                 Website
                                             </a>
                                         )}
                                         {selectedProject.twitter && (
                                             <a href={selectedProject.twitter} target="_blank" rel="noopener noreferrer"
-                                               className="text-blue-600 hover:text-blue-700 text-sm">
+                                                className="text-blue-600 hover:text-blue-700 text-sm">
                                                 Twitter
                                             </a>
                                         )}
                                         {selectedProject.facebook && (
                                             <a href={selectedProject.facebook} target="_blank" rel="noopener noreferrer"
-                                               className="text-blue-600 hover:text-blue-700 text-sm">
+                                                className="text-blue-600 hover:text-blue-700 text-sm">
                                                 Facebook
                                             </a>
                                         )}
                                         {selectedProject.instagram && (
                                             <a href={selectedProject.instagram} target="_blank" rel="noopener noreferrer"
-                                               className="text-blue-600 hover:text-blue-700 text-sm">
+                                                className="text-blue-600 hover:text-blue-700 text-sm">
                                                 Instagram
                                             </a>
                                         )}

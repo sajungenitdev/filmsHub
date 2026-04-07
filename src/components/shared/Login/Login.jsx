@@ -16,7 +16,7 @@ const Login = () => {
     const [error, setError] = useState('');
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://film-server-qlxt.onrender.com';
     
-    // Check if user is already logged in
+    // Check if user is already logged in - FIXED
     useEffect(() => {
         const token = localStorage.getItem('token');
         const user = localStorage.getItem('user');
@@ -24,12 +24,14 @@ const Login = () => {
         if (token && user) {
             try {
                 const userData = JSON.parse(user);
-                // Redirect based on role
-                if (userData.role === 'admin' || userData.role === 'Administrator') {
-                    window.location.href = '/admin';
-                } else {
-                    window.location.href = '/dashboard';
-                }
+                // Use router.push instead of window.location.href
+                // Add a small delay to prevent race conditions
+                const redirectUrl = (userData.role === 'admin' || userData.role === 'Administrator') 
+                    ? '/admin' 
+                    : '/dashboard';
+                
+                // Use router.replace to avoid adding to history stack
+                router.replace(redirectUrl);
             } catch (error) {
                 console.error('Error parsing user data:', error);
                 // Clear invalid data
@@ -37,7 +39,7 @@ const Login = () => {
                 localStorage.removeItem('user');
             }
         }
-    }, []);
+    }, [router]);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -97,16 +99,17 @@ const Login = () => {
                 
                 console.log('Login successful! User role:', data.user.role);
                 
-                // Use window.location.href for reliable redirect
+                // Determine redirect URL
                 const redirectUrl = (data.user.role === 'admin' || data.user.role === 'Administrator') 
                     ? '/admin' 
                     : '/dashboard';
                 
                 console.log('Redirecting to:', redirectUrl);
                 
-                // Small delay to ensure storage is set, then redirect
+                // Use router.push for client-side navigation
+                // Add a small delay to ensure localStorage is fully written
                 setTimeout(() => {
-                    window.location.href = redirectUrl;
+                    router.push(redirectUrl);
                 }, 100);
             } else {
                 setError(data.message || 'Login failed. Please check your credentials.');
