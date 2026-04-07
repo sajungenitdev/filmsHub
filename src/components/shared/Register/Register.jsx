@@ -23,9 +23,10 @@ const Register = () => {
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-            router.push('/dashboard');
+            // Use window.location for reliable redirect
+            window.location.href = '/dashboard';
         }
-    }, [router]);
+    }, []);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -67,7 +68,10 @@ const Register = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault(); // This prevents GET submission
+        e.preventDefault();
+        
+        // Prevent double submission
+        if (isLoading) return;
         
         if (!validateForm()) {
             return;
@@ -77,8 +81,10 @@ const Register = () => {
         setError('');
 
         try {
+            console.log('Sending registration request to:', `${API_URL}/api/auth/register`);
+            
             const response = await fetch(`${API_URL}/api/auth/register`, {
-                method: 'POST', // Explicit POST method
+                method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json'
                 },
@@ -90,18 +96,26 @@ const Register = () => {
             });
 
             const data = await response.json();
+            console.log('Registration response:', data);
 
             if (data.success) {
+                // Store token and user data
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
-                router.push('/dashboard');
+                
+                console.log('Registration successful! Redirecting to dashboard...');
+                
+                // Use window.location for reliable redirect
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 100);
             } else {
                 setError(data.message || 'Registration failed. Please try again.');
+                setIsLoading(false);
             }
         } catch (error) {
             console.error('Registration error:', error);
             setError('Network error. Please check your connection and try again.');
-        } finally {
             setIsLoading(false);
         }
     };
@@ -126,7 +140,6 @@ const Register = () => {
                         </div>
                     )}
 
-                    {/* IMPORTANT: No method attribute needed, handleSubmit handles it */}
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {/* Name Field */}
                         <div>
@@ -174,7 +187,7 @@ const Register = () => {
                             </div>
                         </div>
 
-                        {/* Password Field - Fixed autocomplete */}
+                        {/* Password Field */}
                         <div>
                             <label className="text-slate-900 text-sm mb-2 block font-semibold">
                                 Password <span className="text-red-500">*</span>
@@ -184,7 +197,7 @@ const Register = () => {
                                     name="password"
                                     type={showPassword ? "text" : "password"}
                                     required
-                                    autoComplete="new-password"  // Fixed: Added autocomplete
+                                    autoComplete="new-password"
                                     value={formData.password}
                                     onChange={handleChange}
                                     className="bg-gray-50 w-full text-slate-900 text-sm px-4 py-3 pl-11 pr-12 focus:bg-transparent border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all rounded-lg"
@@ -214,7 +227,7 @@ const Register = () => {
                             <p className="text-xs text-gray-500 mt-1">Must be at least 6 characters</p>
                         </div>
 
-                        {/* Confirm Password Field - Fixed autocomplete */}
+                        {/* Confirm Password Field */}
                         <div>
                             <label className="text-slate-900 text-sm mb-2 block font-semibold">
                                 Confirm Password <span className="text-red-500">*</span>
@@ -224,7 +237,7 @@ const Register = () => {
                                     name="confirmPassword"
                                     type={showConfirmPassword ? "text" : "password"}
                                     required
-                                    autoComplete="new-password"  // Fixed: Added autocomplete
+                                    autoComplete="new-password"
                                     value={formData.confirmPassword}
                                     onChange={handleChange}
                                     className="bg-gray-50 w-full text-slate-900 text-sm px-4 py-3 pl-11 pr-12 focus:bg-transparent border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all rounded-lg"
